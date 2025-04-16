@@ -88,130 +88,178 @@ def restart():
     home.pack(fill='both', expand=1)
 
 
+def detect_visual_titles(gray_img, top_limit_ratio=0.3):
+    """
+    Detects title-like regions based on visual layout:
+    - Top of the page
+    - Large text (tall rows)
+    - Presence of underlines
+    Returns list of (y1, y2) coordinates for title areas
+    """
+    h, w = gray_img.shape
+    top_limit = int(h * top_limit_ratio)
+
+    horizontal_proj = np.sum(gray_img[0:top_limit] < 100, axis=1)  # dark pixels per row
+
+    threshold = np.max(horizontal_proj) * 0.6  # relative threshold
+    min_gap = 5
+    title_blocks = []
+    in_block = False
+    y1 = 0
+
+    for y, val in enumerate(horizontal_proj):
+        if val > threshold:
+            if not in_block:
+                y1 = y
+                in_block = True
+        else:
+            if in_block:
+                y2 = y
+                if (y2 - y1) >= min_gap:
+                    title_blocks.append((y1, y2))
+                in_block = False
+
+    return title_blocks
+
+
+def apply_highlight(image, regions, color=(0, 255, 255), alpha=0.4):
+    """
+    Applies a semi-transparent color overlay (like a highlighter) over given vertical regions.
+    """
+    overlay = image.copy()
+    for y1, y2 in regions:
+        cv2.rectangle(overlay, (0, y1), (image.shape[1], y2), color, -1)  # filled rectangle
+
+    # blend original with overlay
+    return cv2.addWeighted(overlay, alpha, image, 1 - alpha, 0)
+
+
+def is_image_heavy(gray_img, white_pixel_threshold=0.85):
+    """
+    Detects whether the image is likely a photo/diagram based on how white it is.
+    - Text documents usually have lots of white (background).
+    - Image pages tend to be darker or varied.
+    """
+    total_pixels = gray_img.shape[0] * gray_img.shape[1]
+    white_pixels = np.sum(gray_img > 245)  # Almost pure white
+    white_ratio = white_pixels / total_pixels
+
+    print(f"[DEBUG] White ratio: {white_ratio}")
+
+    return white_ratio < white_pixel_threshold
+
+
 def delete_white_lines_and_columns(pdf_path, test_size, output_name):
     load_label.pack(pady=10)
     progress_bar.pack(pady=10)
-    # Open the PDF file
+
     doc = fitz.open(pdf_path)
     failed_pages = []
     pdf = FPDF(unit='pt', format='A4')
+
     max_w = 0
-    # Initialize variables for image positioning
     x_position = 1
     index = 0
     good_sum = 0
     y_position = 1
+
     pdf.add_page()
     loading_inc = float(100) / float(doc.page_count)
 
-    # Iterate through the pages
     for page_num in range(doc.page_count):
         index += 1
-        # Load the page
         page = doc.load_page(page_num)
-        # Render the page as an image
+
+        # High quality render
         pix = page.get_pixmap(dpi=300)
-
-        # Save the pixmap as an intermediate image
         temp_image_path = f"temp_image_{page_num}.jpg"
-
         pix.save(temp_image_path)
 
         image = cv2.imread(temp_image_path)
-
-        # Convert the image to grayscale
         gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-        # Invert the grayscale image
+        # Detect if this page is likely an image-heavy page
+        image_contains_graphic = is_image_heavy(gray)
+
+        # 🔍 Detect likely titles and draw red rectangles
+        title_boxes = detect_visual_titles(gray)
+        image = apply_highlight(image, title_boxes, color=(0, 255, 255), alpha=0.4)
+
         inverted_gray = cv2.bitwise_not(gray)
-
-        # Apply adaptive thresholding to extract white lines and columns
         _, thresholded = cv2.threshold(inverted_gray, 200, 255, cv2.THRESH_BINARY)
-
-        # Calculate the row and column sums
         row_sums = thresholded.sum(axis=1)
         col_sums = thresholded.sum(axis=0)
+
         try:
-            if var.get() == 0:
-                # Delete the white lines and columns
+            if var.get() == 0 and not image_contains_graphic:
                 clean_image = np.delete(np.delete(image, np.where(row_sums == 0), axis=0),
                                         np.where(col_sums == 0), axis=1)
                 cv2.imwrite(temp_image_path, clean_image, [cv2.IMWRITE_JPEG_QUALITY, 100])
-                # Scale the cleaned image
                 scaled_image = cv2.resize(clean_image, (int(clean_image.shape[1] * test_size),
                                                         int(clean_image.shape[0] * test_size)),
                                           interpolation=cv2.INTER_LANCZOS4)
-
             else:
                 scaled_image = cv2.resize(image, (int(image.shape[1] * test_size),
                                                   int(image.shape[0] * test_size)))
 
-            # Add the cleaned image to the PDF object
-
             if y_position > pdf.h - scaled_image.shape[0]:
                 # Draw vertical line to separate columns
-                pdf.set_draw_color(0, 0, 0)  # black
-                pdf.set_line_width(0.5)  # thin line
-                pdf.line(x_position - 0.5, 0, x_position - 0.5, pdf.h)  # from top to bottom of page
+                pdf.set_draw_color(0, 0, 0)
+                pdf.set_line_width(0.5)
+                pdf.line(x_position - 0.5, 0, x_position - 0.5, pdf.h)
 
                 y_position = 1
-                x_position += max_w + 1  # Adjust the spacing between columns
+                x_position += max_w + 1
             if x_position > pdf.w - scaled_image.shape[1]:
                 pdf.add_page()
                 x_position = 1
                 y_position = 1
                 max_w = 0
 
-            # Add the cleaned image to the PDF object
-            pdf.image(temp_image_path, x=x_position, y=y_position, w=scaled_image.shape[1], h=scaled_image.shape[0])
-            y_position += scaled_image.shape[0] + 1  # Adjust the spacing between images
+            pdf.image(temp_image_path, x=x_position, y=y_position,
+                      w=scaled_image.shape[1], h=scaled_image.shape[0])
+            y_position += scaled_image.shape[0] + 1
 
-            # Update the image positioning
             if scaled_image.shape[1] >= max_w:
                 max_w = scaled_image.shape[1]
 
-            # Delete the temporary image
             if os.path.exists(temp_image_path):
                 os.remove(temp_image_path)
+
             good_sum += 1
             progress_bar['value'] += loading_inc
             home.update_idletasks()
+
         except Exception:
             if os.path.exists(temp_image_path):
                 os.remove(temp_image_path)
             print(index)
             failed_pages.append(index)
+
     try:
-        # Save the output PDF file
         pdf.output(output_name)
-        # Close the PDF file
         doc.close()
 
+        # 🗑️ Delete the temp merged PDF if it exists
+        if pdf_path == "temp_merged.pdf" and os.path.exists("temp_merged.pdf"):
+            os.remove("temp_merged.pdf")
+
         if len(failed_pages) > 0:
-            failed_str = ""
-            for i in failed_pages:
-                failed_str += str(i) + ", "
-            msg_box = tk.messagebox.askquestion('Done', "   " + str(good_sum) + " / " + str(index) +
-                                                " pages were compressed, "
-                                                "pages that failed: " + failed_str[
-                                                                        :-2] + "   \n" + "\n" +
-                                                "Do you want to create another file?")
-            if msg_box == 'yes':
-                restart()
-            else:
-                window.destroy()
+            failed_str = ", ".join(str(i) for i in failed_pages)
+            msg_box = tk.messagebox.askquestion('Done', f"   {good_sum} / {index} pages were compressed.\n"
+                                                        f"Pages that failed: {failed_str}\n\n"
+                                                        "Do you want to create another file?")
         else:
-            msg_box = tk.messagebox.askquestion('Done', "   Succeeded - " + str(good_sum) + " pages were compressed   "
-                                                + "   \n" + "\n" +
-                                                "Do you want to create another file?")
-            if msg_box == 'yes':
-                tk.messagebox.showinfo('Return', 'You will now return to the application screen')
-                restart()
-            else:
-                window.destroy()
+            msg_box = tk.messagebox.askquestion('Done', f"   Succeeded - {good_sum} pages were compressed.\n\n"
+                                                        "Do you want to create another file?")
+        if msg_box == 'yes':
+            restart()
+        else:
+            window.destroy()
 
     except Exception as e:
         tk.messagebox.showerror('Error', 'Check if there is a file with the same name that is open: \n' + str(e))
         restart()
+
 
 
 if __name__ == '__main__':
