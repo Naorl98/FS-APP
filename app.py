@@ -9,6 +9,8 @@ import fitz
 import numpy as np
 from fpdf import FPDF
 
+global pdf_path, test_size, output_name
+
 def merge_pdfs(file_paths, output_path="temp_merged.pdf"):
     merged_doc = fitz.open()
     for path in file_paths:
@@ -21,6 +23,7 @@ def merge_pdfs(file_paths, output_path="temp_merged.pdf"):
 
 
 def browse_file():
+    global pdf_path, test_size, output_name
     # Check if percentage input is provided
     if ((number.get('1.0', tk.END))[:-1]) == "":
         tk.messagebox.showerror('Error', 'Enter percent!')
@@ -60,21 +63,33 @@ def browse_file():
         else:
             pdf_path = merge_pdfs(file_paths)
 
-        # Check if output file already exists
-        if os.path.isfile(output_name):
-            msg_box = tk.messagebox.askquestion('File exist',
-                                                'A file with this name exists - do you want to carry on?',
-                                                icon='warning')
-            if msg_box == 'yes':
-                delete_white_lines_and_columns(pdf_path, test_size, output_name)
-            else:
-                restart()
-        else:
-            delete_white_lines_and_columns(pdf_path, test_size, output_name)
+        messagebox.showinfo("Files received", f"{len(file_paths)} PDF file(s) loaded successfully.")
 
     except Exception as e:
         tk.messagebox.showerror('Error', e)
 
+def generate():
+    global pdf_path, test_size, output_name
+    # Check if output file already exists
+    if os.path.isfile(output_name):
+        msg_box = tk.messagebox.askquestion('File exist',
+                                            'A file with this name exists - do you want to carry on?',
+                                            icon='warning')
+        if msg_box == 'yes':
+            delete_white_lines_and_columns(pdf_path, test_size, output_name)
+        else:
+            restart()
+    else:
+        delete_white_lines_and_columns(pdf_path, test_size, output_name)
+def color_name_to_bgr(color_name):
+    colors = {
+        "Yellow": (0, 255, 255),
+        "Green": (0, 255, 0),
+        "Blue": (255, 0, 0),
+        "Pink": (255, 0, 255),
+        "Cyan": (255, 255, 0)
+    }
+    return colors.get(color_name, (0, 255, 255))  # Default: Yellow
 
 def restart():
     progress_bar['value'] = 0
@@ -88,26 +103,24 @@ def restart():
     home.pack(fill='both', expand=1)
 
 
-def detect_visual_titles(gray_img, top_limit_ratio=0.3):
+def detect_visual_titles(gray_img, top_ratio=0.3):
     """
-    Detects title-like regions based on visual layout:
-    - Top of the page
-    - Large text (tall rows)
-    - Presence of underlines
-    Returns list of (y1, y2) coordinates for title areas
+    Improved title detection based on:
+    - Dark thick horizontal lines
+    - Appearing at the top portion of the image
+    - Height threshold to ignore short bold lines
     """
     h, w = gray_img.shape
-    top_limit = int(h * top_limit_ratio)
-
-    horizontal_proj = np.sum(gray_img[0:top_limit] < 100, axis=1)  # dark pixels per row
-
-    threshold = np.max(horizontal_proj) * 0.6  # relative threshold
-    min_gap = 5
-    title_blocks = []
+    limit = int(h * top_ratio)
+    min_height = 15
+    proj = np.sum(gray_img[0:limit] < 100, axis=1)
+    avg_proj = np.mean(proj)
+    std_proj = np.std(proj)
+    threshold = avg_proj + std_proj * 1.5
+    titles = []
     in_block = False
     y1 = 0
-
-    for y, val in enumerate(horizontal_proj):
+    for y, val in enumerate(proj):
         if val > threshold:
             if not in_block:
                 y1 = y
@@ -115,39 +128,22 @@ def detect_visual_titles(gray_img, top_limit_ratio=0.3):
         else:
             if in_block:
                 y2 = y
-                if (y2 - y1) >= min_gap:
-                    title_blocks.append((y1, y2))
+                if (y2 - y1) > min_height:
+                    titles.append((y1, y2))
                 in_block = False
+    return titles
 
-    return title_blocks
 
-
-def apply_highlight(image, regions, color=(0, 255, 255), alpha=0.4):
+def apply_highlight(image, regions, color=(0, 255, 255), alpha=0.4, margin=5):
     """
-    Applies a semi-transparent color overlay (like a highlighter) over given vertical regions.
+    Applies semi-transparent background highlight like a marker behind text.
     """
     overlay = image.copy()
     for y1, y2 in regions:
-        cv2.rectangle(overlay, (0, y1), (image.shape[1], y2), color, -1)  # filled rectangle
-
-    # blend original with overlay
+        y1 = max(0, y1 - margin)
+        y2 = min(image.shape[0], y2 + margin)
+        cv2.rectangle(overlay, (0, y1), (image.shape[1], y2), color, -1)
     return cv2.addWeighted(overlay, alpha, image, 1 - alpha, 0)
-
-
-def is_image_heavy(gray_img, white_pixel_threshold=0.85):
-    """
-    Detects whether the image is likely a photo/diagram based on how white it is.
-    - Text documents usually have lots of white (background).
-    - Image pages tend to be darker or varied.
-    """
-    total_pixels = gray_img.shape[0] * gray_img.shape[1]
-    white_pixels = np.sum(gray_img > 245)  # Almost pure white
-    white_ratio = white_pixels / total_pixels
-
-    print(f"[DEBUG] White ratio: {white_ratio}")
-
-    return white_ratio < white_pixel_threshold
-
 
 def delete_white_lines_and_columns(pdf_path, test_size, output_name):
     load_label.pack(pady=10)
@@ -165,24 +161,21 @@ def delete_white_lines_and_columns(pdf_path, test_size, output_name):
 
     pdf.add_page()
     loading_inc = float(100) / float(doc.page_count)
+    if(color_var.get() != "None"):
+        highlight_color = color_name_to_bgr(color_var.get())
 
     for page_num in range(doc.page_count):
         index += 1
         page = doc.load_page(page_num)
-
-        # High quality render
         pix = page.get_pixmap(dpi=300)
         temp_image_path = f"temp_image_{page_num}.jpg"
         pix.save(temp_image_path)
-
         image = cv2.imread(temp_image_path)
         gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-        # Detect if this page is likely an image-heavy page
-        image_contains_graphic = is_image_heavy(gray)
 
-        # 🔍 Detect likely titles and draw red rectangles
+        # Title highlighting
         title_boxes = detect_visual_titles(gray)
-        image = apply_highlight(image, title_boxes, color=(0, 255, 255), alpha=0.4)
+        image = apply_highlight(image, title_boxes, color=highlight_color, alpha=0.4)
 
         inverted_gray = cv2.bitwise_not(gray)
         _, thresholded = cv2.threshold(inverted_gray, 200, 255, cv2.THRESH_BINARY)
@@ -190,7 +183,7 @@ def delete_white_lines_and_columns(pdf_path, test_size, output_name):
         col_sums = thresholded.sum(axis=0)
 
         try:
-            if var.get() == 0 and not image_contains_graphic:
+            if var.get() == 0:
                 clean_image = np.delete(np.delete(image, np.where(row_sums == 0), axis=0),
                                         np.where(col_sums == 0), axis=1)
                 cv2.imwrite(temp_image_path, clean_image, [cv2.IMWRITE_JPEG_QUALITY, 100])
@@ -274,6 +267,7 @@ if __name__ == '__main__':
     # Set the background color for the frame
     style_frame.configure("My.TFrame", background="black")
 
+
     home = ttk.Frame(window, style="My.TFrame")
     home.pack(fill='both', expand=1)
     label = tk.Label(home, text="   Click the button to upload a PDF file:   ", bg='Black', fg='White',
@@ -302,5 +296,17 @@ if __name__ == '__main__':
     load_label = tk.Label(home, text="   Please wait for the file to be ready   ", bg='Black',
                           fg='White', font=('David', 15))
     progress_bar = ttk.Progressbar(home, length=400, orient=HORIZONTAL)
+
+    # Highlight color selection
+    label_color = tk.Label(home, text=" Choose highlight color: ", bg='Black', fg='White', font=('David', 15))
+    label_color.pack(pady=5)
+
+    color_var = tk.StringVar(value="None")
+    color_options = ["None", "Yellow", "Green", "Blue", "Pink", "Cyan"]
+    color_menu = ttk.Combobox(home, textvariable=color_var, values=color_options, width=10, state="readonly")
+    color_menu.pack(pady=5)
+
+    generateB = tk.Button(home, text="Generate", font=('David', 15), bg='Black', fg='White', width=20, command=generate)
+    generateB.pack(pady=10)
 
     window.mainloop()
