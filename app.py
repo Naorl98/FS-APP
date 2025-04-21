@@ -12,6 +12,8 @@ UPLOAD_FOLDER = "uploads"
 OUTPUT_FOLDER = "output"
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 os.makedirs(OUTPUT_FOLDER, exist_ok=True)
+port = int(os.environ.get("PORT", 5050))
+app.run(host="0.0.0.0", port=port)
 
 @app.route("/")
 def index():
