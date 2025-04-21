@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Processing Your Formula Sheet</title>
+  <title>Processing Formula Sheet</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
     body {
@@ -59,8 +59,8 @@
 <body>
 
   <div class="container">
-    <h2>Creating Your Formula Sheet...</h2>
-    <p>Please wait while your file is being generated.</p>
+    <h2>Generating Your Formula Sheet...</h2>
+    <p>Please wait while we process your file.</p>
     <progress id="progress" value="0" max="100"></progress>
     <div class="percent" id="progress-value">0%</div>
   </div>
@@ -79,7 +79,7 @@
           if (data.progress < 100) {
             setTimeout(updateProgress, 1000);
           } else {
-            window.location.href = `/download/${taskId}`;
+            window.location.href = `/download/${task_id}`;
           }
         });
     }
