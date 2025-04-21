@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Formula Sheet Creator</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #f4f7fa;
+      color: #333;
+      padding-top: 120px; /* space for top ad */
+      padding-bottom: 90px; /* space for footer ad */
+    }
+    .container {
+      max-width: 600px;
+      margin: auto;
+      padding: 30px;
+      background: white;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      border-radius: 8px;
+    }
+    h1 {
+      color: #444;
+      margin-bottom: 20px;
+    }
+    label {
+      display: block;
+      margin-top: 15px;
+      text-align: left;
+    }
+    input, select, button {
+      width: 100%;
+      padding: 10px;
+      margin-top: 5px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+    button {
+      background: #007bff;
+      color: white;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background 0.3s;
+      margin-top: 20px;
+    }
+    button:hover {
+      background: #0056b3;
+    }
+    .disclaimer {
+      margin-top: 15px;
+      font-size: 0.9em;
+      color: #aa0000;
+      text-align: center;
+    }
+    .ad-top {
+      position: fixed;
+      top: 0;
+      width: 100%;
+      text-align: center;
+      background: #fff;
+      padding: 10px 0;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+      z-index: 1000;
+    }
+    .ad-footer {
+      position: fixed;
+      bottom: 0;
+      width: 100%;
+      text-align: center;
+      background: #fff;
+      padding: 10px 0;
+      box-shadow: 0 -2px 6px rgba(0,0,0,0.1);
+      z-index: 1000;
+    }
+  </style>
+
+  <!-- Google AdSense script -->
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8741005797356775"
+          crossorigin="anonymous"></script>
+</head>
+<body>
+
+  <!-- Top Ad -->
+  <div class="ad-top">
+    <ins class="adsbygoogle"
+         style="display:block"
+         data-ad-client="ca-pub-8741005797356775"
+         data-ad-slot="8738075262"
+         data-ad-format="auto"
+         data-full-width-responsive="true"></ins>
+    <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+  </div>
+
+  <div class="container">
+    <h1>Formula Sheet Creator</h1>
+
+    <form id="formulaForm" action="/generate" method="post" enctype="multipart/form-data" onsubmit="return handleGenerate(event)">
+      <label>Select your PDF summary:</label>
+      <input type="file" name="pdfs" accept="application/pdf" required>
+
+      <label>Output file name (optional):</label>
+      <input type="text" name="output_name" placeholder="Auto-generated if left empty">
+
+      <label>Resize percentage (e.g., 100 = original size):</label>
+      <input type="number" name="scale" value="100" min="10" max="100" required>
+
+      <label>Highlight color:</label>
+      <select name="highlight">
+        <option value="None">None</option>
+        <option value="Yellow">Yellow</option>
+        <option value="Green">Green</option>
+        <option value="Blue">Blue</option>
+      </select>
+
+      <label><input type="checkbox" name="clean"> Remove empty lines and columns</label>
+
+      <button type="submit">Generate</button>
+
+      <div class="disclaimer">
+        בלחיצה על כפתור יצירת הדף, המשתמש מאשר כי הוא מסכים לצפות בפרסומת קופצת.<br>
+        By clicking the "Generate" button, you agree to watch a popup advertisement.
+      </div>
+    </form>
+  </div>
+
+  <!-- Footer Ad -->
+  <div class="ad-footer">
+    <ins class="adsbygoogle"
+         style="display:block"
+         data-ad-client="ca-pub-8741005797356775"
+         data-ad-slot="1051156933"
+         data-ad-format="auto"
+         data-full-width-responsive="true"></ins>
+    <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+  </div>
+
+  <script>
+    function handleGenerate(event) {
+      event.preventDefault();
+      const popup = window.open('/watch_ad', 'adPopup', 'width=600,height=400');
+      const form = document.getElementById('formulaForm');
+
+      setTimeout(() => {
+        form.submit();
+      }, 5000);
+      return false;
+    }
+  </script>
+</body>
+</html>

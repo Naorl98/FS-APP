@@ -1,75 +1,62 @@
-from flask import Flask, render_template, request, send_file, redirect, url_for, jsonify
+from flask import Flask, render_template, request, send_file
 import os
 import uuid
-import threading
 from werkzeug.utils import secure_filename
-from processing.processor import process_pdf
+from processing.processor import process_pdf  # Make sure this function is implemented
 
-UPLOAD_FOLDER = 'uploads'
-OUTPUT_FOLDER = 'output'
-
+# Initialize Flask app
 app = Flask(__name__)
-app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
-app.config['OUTPUT_FOLDER'] = OUTPUT_FOLDER
 
+# Define folders
+UPLOAD_FOLDER = "uploads"
+OUTPUT_FOLDER = "output"
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 os.makedirs(OUTPUT_FOLDER, exist_ok=True)
 
-progress_status = {}  # Task ID to progress mapping
-output_files = {}     # Task ID to output file mapping
-
-@app.route("/", methods=["GET", "POST"])
+@app.route("/")
 def index():
-    if request.method == "POST":
-        scale = int(request.form.get("scale", 100))
-        highlight = request.form.get("highlight", "None")
-        clean = request.form.get("clean") == "on"
-        files = request.files.getlist("pdfs")
-
-        raw_output_name = request.form.get("output_name", "").strip()
-        first_file_name = secure_filename(files[0].filename) if files else "output"
-        base_name = os.path.splitext(first_file_name)[0]
-
-        if raw_output_name:
-            output_name = secure_filename(raw_output_name)
-            if not output_name.lower().endswith(".pdf"):
-                output_name += ".pdf"
-        else:
-            output_name = f"NEW-{base_name}-SIZE{scale}.pdf"
-
-        task_id = str(uuid.uuid4())
-        progress_status[task_id] = 0
-
-        upload_paths = []
-        for f in files:
-            path = os.path.join(UPLOAD_FOLDER, secure_filename(f.filename))
-            f.save(path)
-            upload_paths.append(path)
-
-        output_path = os.path.join(OUTPUT_FOLDER, output_name)
-        output_files[task_id] = output_path
-
-        thread = threading.Thread(
-            target=process_pdf,
-            args=(upload_paths, output_path, scale, highlight, clean, progress_status, task_id)
-        )
-        thread.start()
-
-        return render_template("processing.html", task_id=task_id)
-
     return render_template("index.html")
 
-@app.route("/progress/<task_id>")
-def progress(task_id):
-    percent = progress_status.get(task_id, 0)
-    return jsonify({"progress": percent})
+@app.route("/watch_ad")
+def watch_ad():
+    return render_template("watch_ad.html")
 
-@app.route("/download/<task_id>")
-def download(task_id):
-    path = output_files.get(task_id)
-    if path and os.path.exists(path):
-        return send_file(path, as_attachment=True)
-    return "File not found", 404
+@app.route("/generate", methods=["POST"])
+def generate():
+    # Get files and form data
+    files = request.files.getlist("pdfs")
+    output_name = request.form.get("output_name", "").strip()
+    scale = int(request.form.get("scale", 100))
+    highlight = request.form.get("highlight", "None")
+    clean = request.form.get("clean") == "on"
 
-if __name__ == '__main__':
+    # Save uploaded files
+    upload_paths = []
+    for file in files:
+        filename = secure_filename(file.filename)
+        upload_path = os.path.join(UPLOAD_FOLDER, filename)
+        file.save(upload_path)
+        upload_paths.append(upload_path)
+
+    # Generate output filename
+    if not output_name:
+        base_name = os.path.splitext(os.path.basename(upload_paths[0]))[0]
+        output_name = f"NEW-{base_name}-{scale}.pdf"
+    if not output_name.endswith(".pdf"):
+        output_name += ".pdf"
+
+    output_path = os.path.join(OUTPUT_FOLDER, secure_filename(output_name))
+
+    # Run PDF processing
+    process_pdf(
+        file_paths=upload_paths,
+        output_path=output_path,
+        scale_percent=scale,
+        highlight_color=highlight,
+        clean_whitespace=clean
+    )
+
+    return send_file(output_path, as_attachment=True)
+
+if __name__ == "__main__":
     app.run(debug=True, port=5050)
