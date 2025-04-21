@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Generating Formula Sheet...</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      const taskId = "{{ task_id }}";
+      const progressBar = document.getElementById("progress");
+      const progressValue = document.getElementById("progress-value");
+
+      const interval = setInterval(() => {
+        fetch(`/progress/${taskId}`)
+          .then(res => res.json())
+          .then(data => {
+            progressBar.value = data.progress;
+            progressValue.innerText = data.progress + "%";
+            if (data.progress >= 100) {
+              clearInterval(interval);
+              setTimeout(() => {
+                window.location.href = `/download/${taskId}`;
+              }, 1000);
+            }
+          });
+      }, 1000);
+    });
+  </script>
+</head>
+<body>
+  <h1>Generating your formula sheet...</h1>
+  <div id="progress-container" style="margin-top: 20px;">
+    <label for="progress">Progress:</label>
+    <progress id="progress" value="0" max="100"></progress>
+    <span id="progress-value">0%</span>
+  </div>
+
+  <div style="margin-top: 30px;">
+    <a href="/">
+      <button style="padding: 10px 20px; font-size: 16px;">⬅ Back to Home</button>
+    </a>
+  </div>
+</body>
+</html>
