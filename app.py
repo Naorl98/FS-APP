@@ -18,9 +18,16 @@ os.makedirs(OUTPUT_FOLDER, exist_ok=True)
 def index():
     return render_template("index.html")
 
+
 @app.route("/watch_ad")
 def watch_ad():
     return render_template("watch_ad.html")
+
+
+@app.route("/how_to_use.html")
+def how_to_use():
+    return render_template("how_to_use.html")
+
 
 @app.route("/generate", methods=["POST"])
 def generate():

@@ -25,7 +25,7 @@
 
     h1 {
       color: #444;
-      margin-bottom: 20px;
+      margin-bottom: 10px;
     }
 
     label {
@@ -80,6 +80,26 @@
       bottom: 0;
       box-shadow: 0 -2px 6px rgba(0,0,0,0.1);
     }
+
+    .how-to-link {
+      margin-top: 10px;
+      margin-bottom: 25px;
+    }
+
+    .how-to-link a {
+      display: inline-block;
+      padding: 10px 20px;
+      background-color: #28a745;
+      color: white;
+      border-radius: 5px;
+      text-decoration: none;
+      font-weight: bold;
+      transition: background-color 0.3s;
+    }
+
+    .how-to-link a:hover {
+      background-color: #1e7e34;
+    }
   </style>
 
   <!-- Google AdSense -->
@@ -102,6 +122,11 @@
   <div class="container">
     <h1>Formula Sheet Creator</h1>
 
+    <!-- How to Use Button -->
+    <div class="how-to-link">
+      <a href="/how_to_use.html" target="_blank">How to Use</a>
+    </div>
+
     <form id="formulaForm" action="/generate" method="post" enctype="multipart/form-data" onsubmit="return handleGenerate(event)">
       <label>Select your PDF summary:</label>
       <input type="file" name="pdfs" accept="application/pdf" required>
@@ -109,7 +134,7 @@
       <label>Output file name (optional):</label>
       <input type="text" name="output_name" placeholder="Auto-generated if left empty">
 
-      <label>Resize percentage (e.g., 10 = original size):</label>
+      <label>Resize percentage (e.g., 100 = original size):</label>
       <input type="number" name="scale" value="10" min="1" max="100" required>
 
       <label>Highlight color:</label>
@@ -120,7 +145,7 @@
         <option value="Blue">Blue</option>
       </select>
 
-      <label><input type="checkbox" name="clean"> Do not change the pages </label>
+      <label><input type="checkbox" name="clean">leave the document unchanged</label>
 
       <button type="submit">Generate</button>
 
@@ -150,7 +175,7 @@
 
       setTimeout(() => {
         form.submit();
-      }, 5000); // wait at least 5 seconds
+      }, 5000);
       return false;
     }
   </script>
