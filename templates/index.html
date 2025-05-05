@@ -168,16 +168,31 @@
   </div>
 
   <script>
-    function handleGenerate(event) {
-      event.preventDefault();
-      const popup = window.open('/watch_ad', 'adPopup', 'width=600,height=400');
-      const form = document.getElementById('formulaForm');
+  function handleGenerate(event) {
+    event.preventDefault();
 
+    const form = document.getElementById('formulaForm');
+
+    // שלח את הטופס ב־AJAX כדי לקבל task_id
+    const formData = new FormData(form);
+
+    fetch("/generate", {
+      method: "POST",
+      body: formData
+    })
+    .then(response => response.text()) // אמור להחזיר את URL ל־/processing/<task_id>
+    .then(taskUrl => {
+      // פתח את חלון הפרסומת
+      window.open('/watch_ad', 'adPopup', 'width=600,height=400');
+
+      // אחרי 5 שניות, עבור לעמוד ההתקדמות
       setTimeout(() => {
-        form.submit();
+        window.location.href = taskUrl;
       }, 5000);
-      return false;
-    }
+    });
+
+    return false;
+  }
   </script>
 
 </body>

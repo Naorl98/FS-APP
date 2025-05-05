@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Processing Formula Sheet</title>
+  <title>Processing Your Formula Sheet</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
     body {
@@ -54,6 +54,12 @@
       font-size: 1.2rem;
       margin-top: 10px;
     }
+
+    .error {
+      margin-top: 20px;
+      color: red;
+      font-weight: bold;
+    }
   </style>
 </head>
 <body>
@@ -63,6 +69,7 @@
     <p>Please wait while we process your file.</p>
     <progress id="progress" value="0" max="100"></progress>
     <div class="percent" id="progress-value">0%</div>
+    <div id="error" class="error" style="display:none;"></div>
   </div>
 
   <script>
@@ -70,17 +77,31 @@
 
     function updateProgress() {
       fetch(`/progress/${taskId}`)
-        .then(res => res.json())
+        .then(res => {
+          if (!res.ok) {
+            throw new Error("Failed to fetch progress.");
+          }
+          return res.json();
+        })
         .then(data => {
           const progress = document.getElementById("progress");
           const value = document.getElementById("progress-value");
           progress.value = data.progress;
           value.textContent = data.progress + "%";
+          console.log("Progress:", data.progress);
+
           if (data.progress < 100) {
             setTimeout(updateProgress, 1000);
           } else {
-            window.location.href = `/download/${task_id}`;
+            // File is ready – trigger download
+            window.location.href = `/download/${taskId}`;
           }
+        })
+        .catch(err => {
+          console.error(err);
+          const errorDiv = document.getElementById("error");
+          errorDiv.textContent = "An error occurred while checking progress.";
+          errorDiv.style.display = "block";
         });
     }
 

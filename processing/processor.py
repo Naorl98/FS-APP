@@ -62,13 +62,14 @@ def process_pdf(file_paths, output_path, scale_percent, highlight_color, clean_w
                 scaled_image = cv2.resize(clean_image, (int(clean_image.shape[1] * scale_percent / 100),
                                                         int(clean_image.shape[0] * scale_percent / 100)),
                                           interpolation=cv2.INTER_LANCZOS4)
-            if y_position > pdf.h - scaled_image.shape[0]:
-                pdf.set_draw_color(0, 0, 0)
-                pdf.set_line_width(0.5)
-                pdf.line(x_position - 0.5, 0, x_position - 0.5, pdf.h)
+            if y_position + scaled_image.shape[0] > pdf.h:
+                if max_w > 0:
+                    pdf.set_draw_color(0, 0, 0)
+                    pdf.set_line_width(0.5)
+                    pdf.line(x_position + max_w + 0.5, 0, x_position + max_w + 0.5, pdf.h)
                 y_position = 1
-                x_position += max_w + 1
-
+                x_position += max_w + 10
+                max_w = 0
             if x_position > pdf.w - scaled_image.shape[1]:
                 pdf.add_page()
                 x_position = 1
