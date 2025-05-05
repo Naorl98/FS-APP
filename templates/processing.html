@@ -43,30 +43,57 @@
       margin-bottom: 20px;
       font-size: 1rem;
     }
+   .circle-wrapper {
+    position: relative;
+    width: 200px;
+    height: 200px;
+    margin: 30px auto;
+  }
 
-    progress {
-      width: 100%;
-      height: 30px;
-      border-radius: 5px;
-      appearance: none;
-    }
 
-    progress::-webkit-progress-bar {
-      background-color: #eee;
-      border-radius: 5px;
-    }
+  .progress-ring__background {
+    fill: none;
+    stroke: #e6e6e6;
+    stroke-width: 12;
+  }
 
-    progress::-webkit-progress-value {
-      background-color: #007bff;
-      border-radius: 5px;
-    }
+  .progress-ring__circle {
+    fill: none;
+    stroke: #00bfff;
+    stroke-width: 12;
+    stroke-linecap: round;
+    transform: rotate(-90deg);
+    transform-origin: 50% 50%;
+    stroke-dasharray: 565.48; /* 2 * PI * r */
+    stroke-dashoffset: 565.48;
+    transition: stroke-dashoffset 0.35s ease-out;
+  }
 
-    .percent {
-      font-weight: bold;
-      font-size: 1.2rem;
-      margin-top: 10px;
-    }
+  .circle-text {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 1.8rem;
+    font-weight: bold;
+    color: #333;
+  }
+  .animation-wrapper {
+    margin-top: 30px;
+    text-align: center;
+  }
 
+  .pencil-animation {
+    width: 80px;
+    height: auto;
+    animation: float 2s ease-in-out infinite;
+  }
+
+  @keyframes float {
+    0% { transform: translateY(0px); }
+    50% { transform: translateY(-10px); }
+    100% { transform: translateY(0px); }
+  }
     .error {
       margin-top: 20px;
       color: red;
@@ -76,48 +103,57 @@
 </head>
 <body>
 
-  <div class="container">
-    <h2>Generating Your Formula Sheet...</h2>
-    <p>Please wait while we process your file.</p>
-    <progress id="progress" value="0" max="100"></progress>
-    <div class="percent" id="progress-value">0%</div>
-    <div id="error" class="error" style="display:none;"></div>
+  <div class="circle-wrapper">
+    <svg class="progress-ring" width="200" height="200">
+      <circle class="progress-ring__background" r="90" cx="100" cy="100" />
+      <circle class="progress-ring__circle" r="90" cx="100" cy="100" />
+    </svg>
+    <div class="circle-text" id="progress-value">0%</div>
   </div>
 
   <div style="text-align: center; margin-top: 30px;">
     <a href="/" class="btn-return">← Back to Home</a>
   </div>
 
+  <div class="animation-wrapper">
+  <img src="{{ url_for('static', filename='images/pencil.gif') }}" alt="Pencil writing" class="pencil-animation">
+  </div>
+
   <script>
     const taskId = "{{ task_id }}";
+    const circle = document.querySelector(".progress-ring__circle");
+    const text = document.getElementById("progress-value");
+    const radius = 90;
+    const circumference = 2 * Math.PI * radius;
+
+    circle.style.strokeDasharray = `${circumference}`;
+    circle.style.strokeDashoffset = `${circumference}`;
+
+    function setProgress(percent) {
+      const offset = circumference - (percent / 100) * circumference;
+      circle.style.strokeDashoffset = offset;
+      text.textContent = percent + "%";
+    }
 
     function updateProgress() {
       fetch(`/progress/${taskId}`)
         .then(res => {
-          if (!res.ok) {
-            throw new Error("Failed to fetch progress.");
-          }
+          if (!res.ok) throw new Error("Failed to fetch progress.");
           return res.json();
         })
         .then(data => {
-          const progress = document.getElementById("progress");
-          const value = document.getElementById("progress-value");
-          progress.value = data.progress;
-          value.textContent = data.progress + "%";
-          console.log("Progress:", data.progress);
-
+          setProgress(data.progress);
           if (data.progress < 100) {
             setTimeout(updateProgress, 1000);
           } else {
-            // File is ready – trigger download
             window.location.href = `/download/${taskId}`;
           }
         })
         .catch(err => {
-          console.error(err);
           const errorDiv = document.getElementById("error");
           errorDiv.textContent = "An error occurred while checking progress.";
           errorDiv.style.display = "block";
+          console.error(err);
         });
     }
 
