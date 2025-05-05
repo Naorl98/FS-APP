@@ -4,6 +4,7 @@ import uuid
 import threading
 from werkzeug.utils import secure_filename
 from processing.processor import process_pdf
+from flask import after_this_request
 
 UPLOAD_FOLDER = 'uploads'
 OUTPUT_FOLDER = 'output'
@@ -18,17 +19,27 @@ os.makedirs(OUTPUT_FOLDER, exist_ok=True)
 progress_status = {}
 output_files = {}
 
-# 🧹 Utility: delete file after delay
-def delete_later(path, delay=10):
-    def _del():
+def _del(path, delay=10):
+    """Deletes a file after a delay (in seconds)."""
+    try:
         time.sleep(delay)
-        try:
+        if os.path.exists(path):
             os.remove(path)
-            print(f"🧹 Deleted: {path}")
-        except Exception as e:
-            print(f"⚠️ Could not delete file: {e}")
-    threading.Thread(target=_del).start()
+            print(f"🧹 Deleted file after delay: {path}")
+    except Exception as e:
+        print(f"⚠️ Error deleting file {path}: {e}")
 
+# 🧹 Utility: delete file after delay
+# def delete_later(path, delay=10):
+#     def _del():
+#         time.sleep(delay)
+#         try:
+#             os.remove(path)
+#             print(f"🧹 Deleted: {path}")
+#         except Exception as e:
+#             print(f"⚠️ Could not delete file: {e}")
+#     threading.Thread(target=_del).start()
+#
 
 @app.route("/", methods=["GET"])
 def index():
@@ -80,17 +91,43 @@ def processing(task_id):
 def progress(task_id):
     return jsonify({"progress": progress_status.get(task_id, 0)})
 
+
+
 @app.route("/download/<task_id>")
 def download(task_id):
     path = output_files.get(task_id)
     if path and os.path.exists(path):
-        try:
-            response = send_file(path, as_attachment=True)
-            delete_later(path, delay=10)  # 🆕 מחיקה אחרי שליחה
+        @after_this_request
+        def remove_file(response):
+            try:
+                os.remove(path)
+                print(f"🧹 Deleted: {path}")
+            except Exception as e:
+                print(f"⚠️ Failed to delete {path}: {e}")
             return response
-        except Exception as e:
-            return f"Download failed: {e}", 500
+
+        return send_file(path, as_attachment=True)
     return "File not found", 404
+
+# @app.route("/download/<task_id>")
+# def download(task_id):
+#     path = output_files.get(task_id)
+#     if path and os.path.exists(path):
+#         # Start background thread to delete the file after 10 seconds
+#         threading.Thread(target=_del, args=(path, 10)).start()
+#         return send_file(path, as_attachment=True)
+#     return "File not found", 404
+# @app.route("/download/<task_id>")
+# def download(task_id):
+#     path = output_files.get(task_id)
+#     if path and os.path.exists(path):
+#         try:
+#             response = send_file(path, as_attachment=True)
+#             delete_later(path, delay=10)  # 🆕 מחיקה אחרי שליחה
+#             return response
+#         except Exception as e:
+#             return f"Download failed: {e}", 500
+#     return "File not found", 404
 # @app.route("/download/<task_id>")
 # def download(task_id):
 #     path = output_files.get(task_id)
