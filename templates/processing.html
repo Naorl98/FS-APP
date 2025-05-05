@@ -13,7 +13,19 @@
       text-align: center;
       padding-top: 100px;
     }
-
+    .btn-return {
+      display: inline-block;
+      padding: 10px 20px;
+      background-color: #222;
+      color: white;
+      text-decoration: none;
+      border-radius: 8px;
+      font-weight: bold;
+      transition: background-color 0.3s;
+    }
+    .btn-return:hover {
+      background-color: #444;
+    }
     .container {
       max-width: 600px;
       margin: auto;
@@ -70,6 +82,10 @@
     <progress id="progress" value="0" max="100"></progress>
     <div class="percent" id="progress-value">0%</div>
     <div id="error" class="error" style="display:none;"></div>
+  </div>
+
+  <div style="text-align: center; margin-top: 30px;">
+    <a href="/" class="btn-return">← Back to Home</a>
   </div>
 
   <script>

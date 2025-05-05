@@ -18,6 +18,18 @@ os.makedirs(OUTPUT_FOLDER, exist_ok=True)
 progress_status = {}
 output_files = {}
 
+# 🧹 Utility: delete file after delay
+def delete_later(path, delay=10):
+    def _del():
+        time.sleep(delay)
+        try:
+            os.remove(path)
+            print(f"🧹 Deleted: {path}")
+        except Exception as e:
+            print(f"⚠️ Could not delete file: {e}")
+    threading.Thread(target=_del).start()
+
+
 @app.route("/", methods=["GET"])
 def index():
     return render_template("index.html")
@@ -68,28 +80,38 @@ def processing(task_id):
 def progress(task_id):
     return jsonify({"progress": progress_status.get(task_id, 0)})
 
-
 @app.route("/download/<task_id>")
 def download(task_id):
     path = output_files.get(task_id)
     if path and os.path.exists(path):
         try:
             response = send_file(path, as_attachment=True)
-
-            @response.call_on_close
-            def cleanup():
-                try:
-                    os.remove(path)
-                    print(f"🧹 Deleted file: {path}")
-                except Exception as e:
-                    print(f"⚠️ Error deleting file: {e}")
-
+            delete_later(path, delay=10)  # 🆕 מחיקה אחרי שליחה
             return response
-
         except Exception as e:
             return f"Download failed: {e}", 500
-
     return "File not found", 404
+# @app.route("/download/<task_id>")
+# def download(task_id):
+#     path = output_files.get(task_id)
+#     if path and os.path.exists(path):
+#         try:
+#             response = send_file(path, as_attachment=True)
+#
+#             @response.call_on_close
+#             def cleanup():
+#                 try:
+#                     os.remove(path)
+#                     print(f"🧹 Deleted file: {path}")
+#                 except Exception as e:
+#                     print(f"⚠️ Error deleting file: {e}")
+#
+#             return response
+#
+#         except Exception as e:
+#             return f"Download failed: {e}", 500
+#
+#     return "File not found", 404
 
 
 @app.route("/how_to_use.html")

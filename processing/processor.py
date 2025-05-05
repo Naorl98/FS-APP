@@ -99,6 +99,14 @@ def process_pdf(file_paths, output_path, scale_percent, highlight_color, clean_w
         doc.close()
         if pdf_path == 'temp_merged.pdf' and os.path.exists(pdf_path):
             os.remove(pdf_path)
+
+        for path in file_paths:
+            try:
+                if os.path.exists(path):
+                    os.remove(path)
+                    print(f"🧹 Deleted uploaded file: {path}")
+            except Exception as e:
+                print(f"⚠️ Could not delete uploaded file: {path} – {e}")
     except Exception as e:
         raise RuntimeError("Error saving PDF: " + str(e))
 
