@@ -57,11 +57,6 @@ FS-APP/
 4. Click `Generate` – an ad will pop up before download.
 5. After ~5 seconds, your compressed formula sheet will automatically download.
 
----
-
-## 🌍 Live Demo
-
-👉 [formula-sheet-generator](https://your-live-url.com)
 
 ---
 
