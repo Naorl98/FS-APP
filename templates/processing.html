@@ -8,92 +8,99 @@
     body {
       margin: 0;
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background: #f4f7fa;
+      background: linear-gradient(270deg, #f8f9fa, #fce3e3, #e3f8fc, #fff0da);
+      background-size: 800% 800%;
+      animation: backgroundFade 12s ease infinite;
       color: #333;
       text-align: center;
-      padding-top: 100px;
+      padding-top: 80px;
     }
+
+    @keyframes backgroundFade {
+      0% {background-position: 0% 50%;}
+      50% {background-position: 100% 50%;}
+      100% {background-position: 0% 50%;}
+    }
+
     .btn-return {
       display: inline-block;
-      padding: 10px 20px;
+      padding: 12px 24px;
       background-color: #222;
       color: white;
       text-decoration: none;
-      border-radius: 8px;
+      border-radius: 10px;
       font-weight: bold;
+      font-size: 1.1rem;
       transition: background-color 0.3s;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.2);
     }
+
     .btn-return:hover {
       background-color: #444;
     }
-    .container {
-      max-width: 600px;
-      margin: auto;
+
+    .circle-wrapper {
+      position: relative;
+      width: 320px;
+      height: 320px;
+      margin: 40px auto;
+      box-shadow: 0 6px 18px rgba(0,0,0,0.15);
+      border-radius: 50%;
       background: white;
-      padding: 40px 30px;
-      border-radius: 10px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.1);
     }
 
-    h2 {
-      margin-bottom: 10px;
+    .progress-ring__background {
+      fill: none;
+      stroke: #ddd;
+      stroke-width: 16;
     }
 
-    p {
-      margin-bottom: 20px;
-      font-size: 1rem;
+    .progress-ring__circle {
+      fill: none;
+      stroke: url(#gradient);
+      stroke-width: 16;
+      stroke-linecap: round;
+      transform: rotate(-90deg);
+      transform-origin: 50% 50%;
+      stroke-dasharray: 565.48;
+      stroke-dashoffset: 565.48;
+      transition: stroke-dashoffset 0.35s ease-out;
     }
-   .circle-wrapper {
-    position: relative;
-    width: 200px;
-    height: 200px;
-    margin: 30px auto;
-  }
 
+    .circle-text {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 3rem;
+      font-weight: bold;
+      color: #ff6600;
+      animation: pulse 1.5s infinite;
+    }
 
-  .progress-ring__background {
-    fill: none;
-    stroke: #e6e6e6;
-    stroke-width: 12;
-  }
+    @keyframes pulse {
+      0% { transform: translate(-50%, -50%) scale(1); }
+      50% { transform: translate(-50%, -50%) scale(1.1); }
+      100% { transform: translate(-50%, -50%) scale(1); }
+    }
 
-  .progress-ring__circle {
-    fill: none;
-    stroke: #00bfff;
-    stroke-width: 12;
-    stroke-linecap: round;
-    transform: rotate(-90deg);
-    transform-origin: 50% 50%;
-    stroke-dasharray: 565.48; /* 2 * PI * r */
-    stroke-dashoffset: 565.48;
-    transition: stroke-dashoffset 0.35s ease-out;
-  }
+    .animation-wrapper {
+      margin-top: 50px;
+    }
 
-  .circle-text {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    font-size: 1.8rem;
-    font-weight: bold;
-    color: #333;
-  }
-  .animation-wrapper {
-    margin-top: 30px;
-    text-align: center;
-  }
+    .pencil-animation {
+      width: 180px;
+      height: auto;
+      animation: float 2s ease-in-out infinite;
+      box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+    }
 
-  .pencil-animation {
-    width: 80px;
-    height: auto;
-    animation: float 2s ease-in-out infinite;
-  }
+    @keyframes float {
+      0% { transform: translateY(0); }
+      50% { transform: translateY(-14px); }
+      100% { transform: translateY(0); }
+    }
 
-  @keyframes float {
-    0% { transform: translateY(0px); }
-    50% { transform: translateY(-10px); }
-    100% { transform: translateY(0px); }
-  }
     .error {
       margin-top: 20px;
       color: red;
@@ -104,19 +111,25 @@
 <body>
 
   <div class="circle-wrapper">
-    <svg class="progress-ring" width="200" height="200">
-      <circle class="progress-ring__background" r="90" cx="100" cy="100" />
-      <circle class="progress-ring__circle" r="90" cx="100" cy="100" />
+    <svg class="progress-ring" width="320" height="320">
+      <defs>
+        <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" style="stop-color:#ff6600; stop-opacity:1" />
+          <stop offset="100%" style="stop-color:#000000; stop-opacity:1" />
+        </linearGradient>
+      </defs>
+      <circle class="progress-ring__background" r="90" cx="160" cy="160" />
+      <circle class="progress-ring__circle" r="90" cx="160" cy="160" />
     </svg>
     <div class="circle-text" id="progress-value">0%</div>
   </div>
 
-  <div style="text-align: center; margin-top: 30px;">
-    <a href="/" class="btn-return">← Back to Home</a>
+  <div class="animation-wrapper">
+    <img src="{{ url_for('static', filename='images/pencil.gif') }}" alt="Pencil writing" class="pencil-animation">
   </div>
 
-  <div class="animation-wrapper">
-  <img src="{{ url_for('static', filename='images/pencil.gif') }}" alt="Pencil writing" class="pencil-animation">
+  <div style="text-align: center; margin-top: 40px;">
+    <a href="/" class="btn-return">← Back to Home</a>
   </div>
 
   <script>
