@@ -246,9 +246,7 @@
     })
     .then(response => response.text())
     .then(taskUrl => {
-      // פתח חלון פרסומת
       window.open('/watch_ad', 'adPopup', 'width=600,height=400');
-      // אחרי 5 שניות עבור לעמוד העיבוד
       setTimeout(() => {
         window.location.href = taskUrl;
       }, 5000);
