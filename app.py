@@ -83,9 +83,11 @@ def generate():
 
     return f"/processing/{task_id}"
 
+
 @app.route("/processing/<task_id>")
 def processing(task_id):
     return render_template("processing.html", task_id=task_id)
+
 
 @app.route("/progress/<task_id>")
 def progress(task_id):
@@ -108,47 +110,6 @@ def download(task_id):
 
         return send_file(path, as_attachment=True)
     return "File not found", 404
-
-# @app.route("/download/<task_id>")
-# def download(task_id):
-#     path = output_files.get(task_id)
-#     if path and os.path.exists(path):
-#         # Start background thread to delete the file after 10 seconds
-#         threading.Thread(target=_del, args=(path, 10)).start()
-#         return send_file(path, as_attachment=True)
-#     return "File not found", 404
-# @app.route("/download/<task_id>")
-# def download(task_id):
-#     path = output_files.get(task_id)
-#     if path and os.path.exists(path):
-#         try:
-#             response = send_file(path, as_attachment=True)
-#             delete_later(path, delay=10)  # 🆕 מחיקה אחרי שליחה
-#             return response
-#         except Exception as e:
-#             return f"Download failed: {e}", 500
-#     return "File not found", 404
-# @app.route("/download/<task_id>")
-# def download(task_id):
-#     path = output_files.get(task_id)
-#     if path and os.path.exists(path):
-#         try:
-#             response = send_file(path, as_attachment=True)
-#
-#             @response.call_on_close
-#             def cleanup():
-#                 try:
-#                     os.remove(path)
-#                     print(f"🧹 Deleted file: {path}")
-#                 except Exception as e:
-#                     print(f"⚠️ Error deleting file: {e}")
-#
-#             return response
-#
-#         except Exception as e:
-#             return f"Download failed: {e}", 500
-#
-#     return "File not found", 404
 
 
 @app.route("/how_to_use.html")

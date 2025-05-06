@@ -1,95 +1,138 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Formula Sheet Creator</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta charset="UTF-8" />
+  <title>Formula Sheet Generator</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
     body {
       margin: 0;
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background: #f4f7fa;
-      color: #333;
-      padding-top: 100px;
-      padding-bottom: 100px;
-    }
-
-    .container {
-      max-width: 600px;
-      margin: auto;
-      padding: 30px;
-      background: white;
-      box-shadow: 0 0 10px rgba(0,0,0,0.1);
-      border-radius: 8px;
+      background: linear-gradient(to right, #f9f9f9, #eaeef2);
+      color: #2c3e50;
+      padding: 50px 20px;
+      text-align: center;
     }
 
     h1 {
-      color: #444;
-      margin-bottom: 10px;
+      font-size: 2.8em;
+      color: #1a237e;
+      margin-bottom: 40px;
+      font-weight: 700;
     }
 
-    label {
-      display: block;
-      margin-top: 15px;
-      text-align: left;
+    .steps-row {
+      display: flex;
+      justify-content: center;
+      gap: 30px;
+      flex-wrap: wrap;
+      padding: 20px 0;
     }
 
-    input, select, button {
-      width: 100%;
-      padding: 10px;
-      margin-top: 5px;
+    .step-circle {
+      width: 200px;
+      height: 200px;
+      background: #ffffff;
+      border: 2px solid #1a237e;
+      border-radius: 50%;
+      color: #1a237e;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      font-weight: bold;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      transition: transform 0.3s ease;
+    }
+
+    .step-circle:hover {
+      transform: scale(1.03);
+    }
+
+    .step-circle input,
+    .step-circle select {
+      margin-top: 10px;
+      padding: 8px;
+      width: 80%;
       border: 1px solid #ccc;
-      border-radius: 5px;
+      border-radius: 4px;
+      font-size: 0.9em;
     }
 
-    button {
-      background: #007bff;
+    .step-number {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      font-size: 1.2em;
+      background: #3949ab;
+      color: white;
+      border-radius: 50%;
+      width: 28px;
+      height: 28px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .leave-unchanged {
+      max-width: 400px;
+      background-color: #e8eaf6;
+      border: 1px dashed #1a237e;
+      border-radius: 8px;
+      padding: 10px 20px;
+      margin: 30px auto;
+      font-size: 0.95em;
+      color: #1a237e;
+      font-weight: 600;
+      transition: background-color 0.3s ease;
+    }
+
+    .leave-unchanged:hover {
+      background-color: #c5cae9;
+    }
+
+    .generate-circle {
+      margin: 40px auto 10px;
+      width: 220px;
+      height: 220px;
+      background: #1a237e;
+      border-radius: 50%;
+      font-size: 1.4em;
       color: white;
       font-weight: bold;
+      display: flex;
+      align-items: center;
+      justify-content: center;
       cursor: pointer;
-      transition: background 0.3s;
-      margin-top: 20px;
+      transition: background 0.3s, transform 0.3s;
     }
 
-    button:hover {
-      background: #0056b3;
+    .generate-circle:hover {
+      background: #283593;
+      transform: scale(1.05);
     }
 
     .disclaimer {
-      margin-top: 15px;
-      font-size: 0.9em;
-      color: #aa0000;
-      text-align: center;
+      margin-top: 10px;
+      font-size: 0.85em;
+      color: #c62828;
+      font-weight: 600;
+      animation: blink 1.5s infinite alternate;
     }
 
-    .ad-top, .ad-footer {
-      position: fixed;
-      width: 100%;
-      height: 90px;
-      background: white;
-      z-index: 1000;
-      text-align: center;
-    }
-
-    .ad-top {
-      top: 0;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-    }
-
-    .ad-footer {
-      bottom: 0;
-      box-shadow: 0 -2px 6px rgba(0,0,0,0.1);
+    @keyframes blink {
+      0%   { opacity: 1; }
+      100% { opacity: 0.5; }
     }
 
     .how-to-link {
-      margin-top: 10px;
-      margin-bottom: 25px;
+      margin-top: 30px;
     }
 
     .how-to-link a {
       display: inline-block;
       padding: 10px 20px;
-      background-color: #28a745;
+      background-color: #1565c0;
       color: white;
       border-radius: 5px;
       text-decoration: none;
@@ -98,62 +141,84 @@
     }
 
     .how-to-link a:hover {
-      background-color: #1e7e34;
+      background-color: #0d47a1;
+    }
+
+    .ad-footer {
+      position: fixed;
+      bottom: 0;
+      width: 100%;
+      height: 90px;
+      background: white;
+      text-align: center;
+      box-shadow: 0 -2px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    form {
+      max-width: 1000px;
+      margin: auto;
     }
   </style>
-
-  <!-- Google AdSense -->
-  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8741005797356775"
-          crossorigin="anonymous"></script>
 </head>
 <body>
 
-  <!-- Top Ad -->
-  <div class="ad-top">
-    <ins class="adsbygoogle"
-         style="display:inline-block; width:100%; height:90px"
-         data-ad-client="ca-pub-8741005797356775"
-         data-ad-slot="8738075262"
-         data-ad-format="horizontal"
-         data-full-width-responsive="true"></ins>
-    <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
-  </div>
+  <h1>Formula Sheet Generator</h1>
 
-  <div class="container">
-    <h1>Formula Sheet Creator</h1>
+<!--<form id="formulaForm" action="/generate" method="post" enctype="multipart/form-data" onsubmit="return handleGenerate(event)">-->
+  <form id="formulaForm" enctype="multipart/form-data" onsubmit="return handleGenerate(event)">
+    <div class="steps-row">
 
-    <!-- How to Use Button -->
-    <div class="how-to-link">
-      <a href="/how_to_use.html" target="_blank">How to Use</a>
+      <div class="step-circle">
+        <div class="step-number">1</div>
+        Upload PDF
+        <input type="file" name="pdfs" accept="application/pdf" required />
+      </div>
+
+      <div class="step-circle">
+        <div class="step-number">2</div>
+        File Name
+        <input type="text" name="output_name" placeholder="Auto if empty" />
+      </div>
+
+      <div class="step-circle">
+        <div class="step-number">3</div>
+        Scale (%)
+        <input type="number" name="scale" value="10" min="1" max="100" required />
+      </div>
+
+      <div class="step-circle">
+        <div class="step-number">4</div>
+        Highlight
+        <select name="highlight">
+          <option value="None">None</option>
+          <option value="Yellow">Yellow</option>
+          <option value="Green">Green</option>
+          <option value="Blue">Blue</option>
+        </select>
+      </div>
+
     </div>
 
-    <form id="formulaForm" action="/generate" method="post" enctype="multipart/form-data" onsubmit="return handleGenerate(event)">
-      <label>Select your PDF summary:</label>
-      <input type="file" name="pdfs" accept="application/pdf" required>
+    <div class="leave-unchanged">
+      <label>
+        <input type="checkbox" name="clean" style="margin-right: 8px;">
+        Leave the document unchanged
+      </label>
+    </div>
 
-      <label>Output file name (optional):</label>
-      <input type="text" name="output_name" placeholder="Auto-generated if left empty">
+  <!-- GENERATE button -->
+  <div class="generate-circle" onclick="document.getElementById('formulaForm').requestSubmit();">
+    GENERATE
+  </div>
 
-      <label>Resize percentage (e.g., 100 = original size):</label>
-      <input type="number" name="scale" value="10" min="1" max="100" required>
 
-      <label>Highlight color:</label>
-      <select name="highlight">
-        <option value="None">None</option>
-        <option value="Yellow">Yellow</option>
-        <option value="Green">Green</option>
-        <option value="Blue">Blue</option>
-      </select>
+    <div class="disclaimer">
+      By clicking the "Generate" button, you agree to watch a popup advertisement.
+    </div>
+  </form>
 
-      <label><input type="checkbox" name="clean">leave the document unchanged</label>
-
-      <button type="submit">Generate</button>
-
-      <div class="disclaimer">
-        בלחיצה על כפתור יצירת הדף, המשתמש מאשר כי הוא מסכים לצפות בפרסומת קופצת.<br>
-        By clicking the "Generate" button, you agree to watch a popup advertisement.
-      </div>
-    </form>
+  <div class="how-to-link">
+    <a href="/how_to_use.html" target="_blank">How to Use</a>
   </div>
 
   <!-- Bottom Ad -->
@@ -164,36 +229,39 @@
          data-ad-slot="1051156933"
          data-ad-format="horizontal"
          data-full-width-responsive="true"></ins>
-    <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    <script>
+      (adsbygoogle = window.adsbygoogle || []).push({});
+    </script>
   </div>
 
-  <script>
+<script>
   function handleGenerate(event) {
     event.preventDefault();
-
     const form = document.getElementById('formulaForm');
-
-    // שלח את הטופס ב־AJAX כדי לקבל task_id
     const formData = new FormData(form);
 
     fetch("/generate", {
       method: "POST",
       body: formData
     })
-    .then(response => response.text()) // אמור להחזיר את URL ל־/processing/<task_id>
+    .then(response => response.text())
     .then(taskUrl => {
-      // פתח את חלון הפרסומת
+      // פתח חלון פרסומת
       window.open('/watch_ad', 'adPopup', 'width=600,height=400');
-
-      // אחרי 5 שניות, עבור לעמוד ההתקדמות
+      // אחרי 5 שניות עבור לעמוד העיבוד
       setTimeout(() => {
         window.location.href = taskUrl;
       }, 5000);
+    })
+    .catch(err => {
+      alert("Error: " + err);
     });
 
     return false;
   }
-  </script>
+</script>
+
+
 
 </body>
 </html>
