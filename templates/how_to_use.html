@@ -1,86 +1,42 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>How to Use - Formula Sheet Creator</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <style>
-    body {
-      margin: 0;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background: #f4f7fa;
-      color: #333;
-      padding: 100px 20px;
-    }
-
-    .container {
-      max-width: 800px;
-      margin: auto;
-      background: white;
-      padding: 40px;
-      border-radius: 10px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.1);
-      line-height: 1.6;
-    }
-
-    h1 {
-      color: #007bff;
-      margin-bottom: 20px;
-    }
-
-    h2 {
-      margin-top: 40px;
-      color: #444;
-    }
-
-    p {
-      margin-bottom: 15px;
-    }
-
-    hr {
-      margin: 40px 0;
-    }
-
-    strong {
-      color: #222;
-    }
-  </style>
+  <meta charset="UTF-8" />
+  <title>How to Use</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/how_to_use.css') }}">
 </head>
 <body>
+
   <div class="container">
-    <h1>How to Use the Formula Sheet Creator</h1>
+    <h1>How to Use the Formula Sheet Generator</h1>
 
-    <p>To create a formula sheet, upload one or more PDF summaries. The system will automatically merge multiple files into a single document.</p>
+    <div class="instructions">
+      <h2>📘 English Instructions</h2>
+      <p>To create a formula sheet, upload one or multiple PDF summaries that will be merged. Prefer text-heavy files and avoid excessive images.</p>
+      <p>The lower the percentage you choose, the smaller the text will be, allowing more pages per sheet.</p>
+      <p>You can optionally specify a custom name for the output file, or we will generate one automatically.</p>
+      <p>The "Leave the document unchanged" checkbox will skip processing and only scale the content for fitting pages side-by-side.</p>
+      <p>Highlighting is useful if your PDF contains bold headers or titles — choose a color to mark them clearly.</p>
+      <p>Recommended: use 5% to 15% scaling for optimal compression and visual clarity. Upload text-based PDFs for best results.</p>
 
-    <p>For best results, it is recommended to upload summaries that contain mainly text and minimal images.</p>
+      <hr style="margin: 30px 0;">
 
-    <p>The <strong>“Resize Percentage”</strong> determines how much the pages will be scaled down. Lower values result in smaller text, but allow more content per page.</p>
+      <div class="rtl">
+        <h2>📗 הוראות בעברית</h2>
+        <p>כדי ליצור דף נוסחאות, יש להעלות קובץ PDF אחד או כמה סיכומים שיתמזגו לקובץ אחד.</p>
+        <p>עדיף להשתמש בסיכומים שמכילים בעיקר טקסט ופחות תמונות.</p>
+        <p>ככל שתבחר אחוז הקטנה נמוך יותר, כך הטקסט יהיה קטן יותר, וייכנסו יותר עמודים בכל דף.</p>
+        <p>אפשר להכניס שם מותאם אישית לקובץ, ואם לא תכניס – ייווצר שם אוטומטי.</p>
+        <p>אם תסמן את האפשרות "השאר את המסמך כמו שהוא", האלגוריתם לא יבצע ניקוי או מיזוג – רק הקטנה של העמודים.</p>
+        <p>אפשר לבחור צבע הדגשה (מרקר) לכותרות אם קיימות – מומלץ במיוחד אם יש כותרות מודגשות.</p>
+        <p>המלצה: לבחור בין 5% ל־15% הקטנה, ולהעלות סיכום שהוא בעיקר טקסט (לא תמונות).</p>
+      </div>
+    </div>
 
-    <p>You can enter a custom name for the output file. If left blank, the system will generate a name based on the uploaded documents.</p>
-
-    <p>You may enable the <strong>“Leave the document as-is”</strong> option to skip the formula-sheet formatting algorithm. This will only resize and combine the pages without modification.</p>
-
-    <p>A <strong>highlight color</strong> can be applied to mark section titles, assuming the document uses bold or underlined formatting for headings.</p>
-
-    <p><strong>Recommended settings:</strong> use a resize percentage between 5–15% and ensure your PDF contains mostly text-based content.</p>
-
-    <hr>
-
-    <h2>איך להשתמש ביוצר דף נוסחאות</h2>
-
-    <p>ליצירת דף נוסחאות, יש להעלות קובץ PDF אחד או יותר. המערכת תאחד קבצים מרובים למסמך אחד באופן אוטומטי.</p>
-
-    <p>לתוצאה מיטבית, מומלץ להעלות סיכומים המכילים בעיקר טקסט ומעט תמונות ככל האפשר.</p>
-
-    <p>שדה <strong>“אחוז ההקטנה”</strong> קובע את גודל ההקטנה של הדפים. ככל שהאחוז נמוך יותר — הטקסט יהיה קטן יותר וייכנס יותר תוכן בכל עמוד.</p>
-
-    <p>ניתן להזין שם קובץ מותאם אישית. אם תשאיר את השדה ריק — יווצר שם אוטומטי לפי הקבצים שהעלית.</p>
-
-    <p>ניתן לבחור באופציה <strong>“השאר את המסמך כפי שהוא”</strong> כדי לבטל את עיבוד דף הנוסחאות — פעולה זו תבצע רק הקטנה וסידור של הדפים.</p>
-
-    <p>ניתן גם להפעיל <strong>צבע מרקר</strong> לזיהוי כותרות, במיוחד אם הן מודגשות או עם קו תחתון במסמך.</p>
-
-    <p><strong>המלצה:</strong> השתמשו בהקטנה של 5–15% והעלו קובץ PDF טקסטואלי בלבד.</p>
+    <a href="/" class="back-btn">← Back to Generator</a>
   </div>
+
+  <script src="{{ url_for('static', filename='js/how_to_use.js') }}"></script>
 </body>
 </html>

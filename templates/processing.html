@@ -4,109 +4,7 @@
   <meta charset="UTF-8">
   <title>Processing Your Formula Sheet</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <style>
-    body {
-      margin: 0;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background: linear-gradient(270deg, #f8f9fa, #fce3e3, #e3f8fc, #fff0da);
-      background-size: 800% 800%;
-      animation: backgroundFade 12s ease infinite;
-      color: #333;
-      text-align: center;
-      padding-top: 80px;
-    }
-
-    @keyframes backgroundFade {
-      0% {background-position: 0% 50%;}
-      50% {background-position: 100% 50%;}
-      100% {background-position: 0% 50%;}
-    }
-
-    .btn-return {
-      display: inline-block;
-      padding: 12px 24px;
-      background-color: #222;
-      color: white;
-      text-decoration: none;
-      border-radius: 10px;
-      font-weight: bold;
-      font-size: 1.1rem;
-      transition: background-color 0.3s;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.2);
-    }
-
-    .btn-return:hover {
-      background-color: #444;
-    }
-
-    .circle-wrapper {
-      position: relative;
-      width: 320px;
-      height: 320px;
-      margin: 40px auto;
-      box-shadow: 0 6px 18px rgba(0,0,0,0.15);
-      border-radius: 50%;
-      background: white;
-    }
-
-    .progress-ring__background {
-      fill: none;
-      stroke: #ddd;
-      stroke-width: 16;
-    }
-
-    .progress-ring__circle {
-      fill: none;
-      stroke: url(#gradient);
-      stroke-width: 16;
-      stroke-linecap: round;
-      transform: rotate(-90deg);
-      transform-origin: 50% 50%;
-      stroke-dasharray: 565.48;
-      stroke-dashoffset: 565.48;
-      transition: stroke-dashoffset 0.35s ease-out;
-    }
-
-    .circle-text {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      font-size: 3rem;
-      font-weight: bold;
-      color: #ff6600;
-      animation: pulse 1.5s infinite;
-    }
-
-    @keyframes pulse {
-      0% { transform: translate(-50%, -50%) scale(1); }
-      50% { transform: translate(-50%, -50%) scale(1.1); }
-      100% { transform: translate(-50%, -50%) scale(1); }
-    }
-
-    .animation-wrapper {
-      margin-top: 50px;
-    }
-
-    .pencil-animation {
-      width: 180px;
-      height: auto;
-      animation: float 2s ease-in-out infinite;
-      box-shadow: 0 8px 16px rgba(0,0,0,0.1);
-    }
-
-    @keyframes float {
-      0% { transform: translateY(0); }
-      50% { transform: translateY(-14px); }
-      100% { transform: translateY(0); }
-    }
-
-    .error {
-      margin-top: 20px;
-      color: red;
-      font-weight: bold;
-    }
-  </style>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/processing.css') }}">
 </head>
 <body>
 
@@ -133,45 +31,9 @@
   </div>
 
   <script>
-    const taskId = "{{ task_id }}";
-    const circle = document.querySelector(".progress-ring__circle");
-    const text = document.getElementById("progress-value");
-    const radius = 90;
-    const circumference = 2 * Math.PI * radius;
-
-    circle.style.strokeDasharray = `${circumference}`;
-    circle.style.strokeDashoffset = `${circumference}`;
-
-    function setProgress(percent) {
-      const offset = circumference - (percent / 100) * circumference;
-      circle.style.strokeDashoffset = offset;
-      text.textContent = percent + "%";
-    }
-
-    function updateProgress() {
-      fetch(`/progress/${taskId}`)
-        .then(res => {
-          if (!res.ok) throw new Error("Failed to fetch progress.");
-          return res.json();
-        })
-        .then(data => {
-          setProgress(data.progress);
-          if (data.progress < 100) {
-            setTimeout(updateProgress, 1000);
-          } else {
-            window.location.href = `/download/${taskId}`;
-          }
-        })
-        .catch(err => {
-          const errorDiv = document.getElementById("error");
-          errorDiv.textContent = "An error occurred while checking progress.";
-          errorDiv.style.display = "block";
-          console.error(err);
-        });
-    }
-
-    updateProgress();
+    const taskId = "{{ task_id }}";  // Injected from Flask
   </script>
+  <script src="{{ url_for('static', filename='js/processing.js') }}"></script>
 
 </body>
 </html>
